@@ -1,1 +1,4 @@
-# Exercises for ICS-E4020
+# Exercises
+
+This repository contains all the material related to the exercises. 
+
