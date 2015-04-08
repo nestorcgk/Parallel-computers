@@ -1,0 +1,7 @@
+#!/bin/sh
+
+for a in "g++-4.9" "g++-4.8"; do
+    "$a" "--version" > /dev/null 2>&1 && echo "$a" && exit 0
+done
+echo "could not find a suitable C++ complier" >&2
+exit 1

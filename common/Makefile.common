@@ -1,0 +1,29 @@
+.PHONY: all clean depend test benchmark
+
+CXX := $(shell ../util/find-cxx)
+ifdef DEBUG
+CXXFLAGS=-g -std=c++11 -fsanitize=address -fsanitize=undefined -Wall -Wextra -Werror -Wno-unknown-pragmas
+LDFLAGS=-fsanitize=address -fsanitize=undefined
+else
+CXXFLAGS=-g -std=c++11 -Wall -Wextra -Wno-unused-parameter -Wno-unknown-pragmas -Werror -O3 -march=native
+CXXFLAGS+=$(shell ../util/find-flags)
+endif
+TEST=./test.sh
+BENCHMARK=./benchmark.sh
+
+all: $(bin)
+
+test: $(bin)
+	@$(MAKE) -s -C ../common
+	@$(TEST)
+	@echo "PASSED."
+
+benchmark: $(bin)
+	@$(BENCHMARK)
+
+depend:
+	$(CXX) -MM $(CXXFLAGS) *.cc > Makefile.dep
+
+clean:
+	rm -f $(bin) *.o
+
