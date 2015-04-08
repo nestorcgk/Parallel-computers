@@ -1,0 +1,10 @@
+/tmp
+*.o
+pngdiff
+pngcorrupt
+pngsegment
+pngcorrelate
+pngmf
+is-benchmark
+cp-benchmark
+mf-benchmark
