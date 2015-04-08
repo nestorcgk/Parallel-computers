@@ -44,7 +44,13 @@ We will assume the following:
 
  - Libraries: libpng installed in a location where GCC can find it.
 
+
+### Classroom computers
+
 Everything should work directly in the classroom computers (Maari-A).
+
+
+### Your own computers
 
 To run this on your own OS X computer, try the following:
 
