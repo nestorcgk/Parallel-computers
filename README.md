@@ -52,6 +52,7 @@ To run this on your own OS X computer, try the following:
 
  - Run: `brew install gcc libpng`
 
-To run this on your own Ubuntu Linux computer, try the following:
+To run this on your own Ubuntu 14.04 Linux computer, try the
+following:
 
  - Run: `sudo apt-get install g++-4.8 libpng12-dev`
