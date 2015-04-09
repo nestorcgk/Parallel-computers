@@ -1,7 +1,8 @@
 #!/bin/bash
 
-files="a0 a1"
+./mf-test || exit 1
 
+files="a0 a1"
 mkdir -p ../tmp || exit 1
 for a in $files; do
     for w in 1 10; do

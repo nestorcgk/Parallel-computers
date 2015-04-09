@@ -5,6 +5,9 @@ pngcorrupt
 pngsegment
 pngcorrelate
 pngmf
+is-test
+cp-test
+mf-test
 is-benchmark
 cp-benchmark
 mf-benchmark
