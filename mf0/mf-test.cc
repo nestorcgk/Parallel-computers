@@ -1,6 +1,4 @@
 #include <iostream>
-#include <vector>
-#include <random>
 #include "mf.h"
 
 static void compare(const char* file, int line, int l, const float* out, const float* expected) {
