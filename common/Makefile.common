@@ -1,6 +1,9 @@
 .PHONY: all clean depend test benchmark
 
 CXX := $(shell ../util/find-cxx)
+ifeq ($(CXX),)
+$(error could not find a suitable C++ complier)
+endif
 ifdef DEBUG
 CXXFLAGS=-g -std=c++11 -fsanitize=address -fsanitize=undefined -Wall -Wextra -Werror -Wno-unknown-pragmas
 LDFLAGS=-fsanitize=address -fsanitize=undefined
@@ -8,6 +11,7 @@ else
 CXXFLAGS=-g -std=c++11 -Wall -Wextra -Wno-unused-parameter -Wno-unknown-pragmas -Werror -O3 -march=native
 CXXFLAGS+=$(shell ../util/find-flags)
 endif
+
 TEST=./test.sh
 BENCHMARK=./benchmark.sh
 
