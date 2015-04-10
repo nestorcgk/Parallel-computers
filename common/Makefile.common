@@ -22,8 +22,16 @@ test: $(bin)
 	@$(TEST)
 	@echo "PASSED."
 
+test2: $(bin)
+	@$(MAKE) -s -C ../common
+	@$(TEST) 2
+	@echo "PASSED."
+
 benchmark: $(bin)
 	@$(BENCHMARK)
+
+benchmark2: $(bin)
+	@$(BENCHMARK) 2
 
 depend:
 	$(CXX) -MM $(CXXFLAGS) *.cc > Makefile.dep

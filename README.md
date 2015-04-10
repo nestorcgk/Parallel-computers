@@ -30,6 +30,9 @@ And do some benchmarking to see that it performs well:
     make benchmark
 
 In the benchmarks, the last column is the running time in seconds.
+For more thorough benchmarks, try:
+
+    make benchmark2
 
 
 Environment
