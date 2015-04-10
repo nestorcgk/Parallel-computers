@@ -7,6 +7,18 @@ See the course web page for details:
 https://users.ics.aalto.fi/suomela/ppc-2015/
 
 
+Files to edit
+-------------
+
+Weekly reports:
+
+    report/week*.pdf
+
+Tasks:
+
+    mf*/mf.cc
+
+
 Quick start
 -----------
 
