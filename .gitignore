@@ -1,5 +1,8 @@
 /tmp
 *.o
+*.s
+*.asm1
+*.asm2
 pngdiff
 pngcorrupt
 pngsegment

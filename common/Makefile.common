@@ -1,15 +1,19 @@
 .PHONY: all clean depend test benchmark
+.DELETE_ON_ERROR:
 
 CXX := $(shell ../util/find-cxx)
 ifeq ($(CXX),)
 $(error could not find a suitable C++ complier)
 endif
-ifdef DEBUG
-CXXFLAGS=-g -std=c++11 -fsanitize=address -fsanitize=undefined -Wall -Wextra -Werror -Wno-unknown-pragmas
-LDFLAGS=-fsanitize=address -fsanitize=undefined
+
+CXXFLAGS=-g -std=c++11 -Wall -Wextra -Wno-unused-parameter -Wno-unknown-pragmas -Werror
+CXXFLAGS+=-march=native $(shell ../util/find-flags)
+ifeq ($(DEBUG),1)
+else ifeq ($(DEBUG),2)
+CXXFLAGS+=-fsanitize=address -fsanitize=undefined
+LDFLAGS+=-fsanitize=address -fsanitize=undefined
 else
-CXXFLAGS=-g -std=c++11 -Wall -Wextra -Wno-unused-parameter -Wno-unknown-pragmas -Werror -O3 -march=native
-CXXFLAGS+=$(shell ../util/find-flags)
+CXXFLAGS+=-O3
 endif
 
 TEST=./test.sh
@@ -33,9 +37,18 @@ benchmark: $(bin)
 benchmark2: $(bin)
 	@$(BENCHMARK) 2
 
+%.s : %.cc
+	$(CXX) -S -fverbose-asm $(CXXFLAGS) $^
+
+%.asm1 : %.s
+	c++filt < $^ > $@
+
+%.asm2 : %.o
+	../util/objdump-wrapper -d -S $^ > $@
+
 depend:
 	$(CXX) -MM $(CXXFLAGS) *.cc > Makefile.dep
 
 clean:
-	rm -f $(bin) *.o
+	rm -f $(bin) *.o *.s *.asm1 *.asm2
 
