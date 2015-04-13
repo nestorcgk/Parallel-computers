@@ -1,5 +1,5 @@
 ICS-E4020 Programming Parallel Computers
-========================================
+
 
 Material for the weekly exercises.
 
@@ -131,4 +131,6 @@ what it looks like without optimisation:
     make DEBUG=1 mf.asm1
     make DEBUG=1 mf.asm2
 
+
+# solutions-nestorcgk
 
