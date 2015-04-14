@@ -7,6 +7,10 @@ for a in "g++-4.9" "g++-4.8" "g++"; do
             echo "$a"
             exit 0
             ;;
+        4.[89])
+            echo "$a"
+            exit 0
+            ;;
         esac
     fi
 done
