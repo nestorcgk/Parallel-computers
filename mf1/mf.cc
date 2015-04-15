@@ -2,14 +2,6 @@
 
 
 
-
-
-void clear(vector<float> &q)
-{
-    vector<float>  empty;
-    swap( q, empty );
-}
-
 void mf(int ny, int nx, int hy, int hx, const float* in, float* out)
 {
     // FIXME
@@ -19,30 +11,27 @@ void mf(int ny, int nx, int hy, int hx, const float* in, float* out)
 	int ywind = 0;
 	vector<float> window;
     
-    for (int y = edgey; y < ny-edgey; y++)
+    for (int y = 0; y < ny; y++)
     {
-    	for (int x = edgex; x < nx-edgex; x++)
+    	for (int x = 0; x < nx; x++)
     	{
+            vector<float> window;  
     		for (int wx = 0; wx < hx; wx++)
     		{
     			for(int wy = 0; wy <hy ; wy++)
     			{
     				xwind = x + wx - edgex;
     				ywind = y + wy - edgey;
-    				window.push_back(in[xwind + nx*ywind]);
+                    if(xwind>= 0 && xwind <nx && ywind>= 0 && ywind <ny)
+                    {
+                        window.push_back(in[xwind + nx*ywind]);
+                    }
+    				
     			}
     		}
     		nth_element(window.begin(), window.begin() + window.size()/2, window.end());
-    		out[x + nx*y] = window[window.size()/2];//median 
-    		clear(window);
+    		out[x + nx*y] = window[window.size()/2];
+    		
     	}
     }
-
-
-
-
-
-    //for (int i = edgex; i < ny * nx; ++i) {
-    //    out[i] = in[i];
-    //}
 }
