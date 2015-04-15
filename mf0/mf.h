@@ -2,6 +2,7 @@
 #include <vector>
 #include <algorithm>
 #include <functional>
+#include <omp.h>
 #ifndef MF_H
 #define MF_H
 using namespace std;
