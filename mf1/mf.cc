@@ -29,8 +29,16 @@ void mf(int ny, int nx, int hy, int hx, const float* in, float* out)
     				
     			}
     		}
-    		nth_element(window.begin(), window.begin() + window.size()/2, window.end());
-    		out[x + nx*y] = window[window.size()/2];
+            nth_element(window.begin(), window.begin() + window.size()/2, window.end());
+            if(window.size() % 2 == 0)
+            {
+                out[x + nx*y] = (window[window.size()/2] + window[window.size()/2+1])/2.0;
+                
+            }else
+            {
+                out[x + nx*y] = window[window.size()/2];
+            }
+    		
     		
     	}
     }
