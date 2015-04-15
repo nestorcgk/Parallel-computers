@@ -16,12 +16,13 @@ void mf(int ny, int nx, int hy, int hx, const float* in, float* out)
 	int edgey = hy/2;
 	int xwind = 0;
 	int ywind = 0;
-	vector<float> window;
-    #pragma omp parallel for   
+	
+    #pragma omp parallel for  
     for (int y = edgey; y < ny-edgey; y++)
     {
     	for (int x = edgex; x < nx-edgex; x++)
-    	{
+    	{ 
+            vector<float> window;  
     		for (int wx = 0; wx < hx; wx++)
     		{
     			for(int wy = 0; wy <hy ; wy++)
@@ -33,7 +34,8 @@ void mf(int ny, int nx, int hy, int hx, const float* in, float* out)
     		}
     		nth_element(window.begin(), window.begin() + window.size()/2, window.end());
     		out[x + nx*y] = window[window.size()/2];//median 
-    		clear(window);
+            //#pragma omp critical
+    		//clear(window);
     	}
     }
 
