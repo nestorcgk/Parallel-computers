@@ -42,9 +42,22 @@ And do some benchmarking to see that it performs well:
     make benchmark
 
 In the benchmarks, the last column is the running time in seconds.
-For more thorough benchmarks, try:
 
+
+Variants
+--------
+
+For more thorough tests and benchmarks, you can also try:
+
+    make test2
     make benchmark2
+
+For OpenMP code, tests and benchmarks are automatically ran for
+different numbers of threads (1, 2, 4, 8, and default). To only
+run the default version, try:
+
+    make test1
+    make benchmark1
 
 
 Environment

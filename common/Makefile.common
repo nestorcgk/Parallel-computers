@@ -1,4 +1,4 @@
-.PHONY: all clean depend test benchmark
+.PHONY: all clean depend test test1 test2 benchmark benchmark1 benchmark2
 .DELETE_ON_ERROR:
 
 CXX := $(shell ../util/find-cxx)
@@ -17,13 +17,20 @@ CXXFLAGS+=-O3
 endif
 
 TEST=./test.sh
+TEST1=./test.sh
 BENCHMARK=./benchmark.sh
+BENCHMARK1=./benchmark.sh
 
 all: $(bin)
 
 test: $(bin)
 	@$(MAKE) -s -C ../common
 	@$(TEST)
+	@echo "PASSED."
+
+test1: $(bin)
+	@$(MAKE) -s -C ../common
+	@$(TEST1)
 	@echo "PASSED."
 
 test2: $(bin)
@@ -33,6 +40,9 @@ test2: $(bin)
 
 benchmark: $(bin)
 	@$(BENCHMARK)
+
+benchmark1: $(bin)
+	@$(BENCHMARK1)
 
 benchmark2: $(bin)
 	@$(BENCHMARK) 2
