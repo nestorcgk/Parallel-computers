@@ -1,5 +1,10 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <functional>
 #ifndef MF_H
 #define MF_H
+using namespace std;
 
 // nx, ny: image dimensions, width x pixels and height y pixels.
 // hx, hy: window radius in x and y directions.
@@ -10,5 +15,7 @@
 // in[x + y*nx] and out[x + y*nx].
 
 void mf(int ny, int nx, int hy, int hx, const float* in, float* out);
+void clear(vector<float> &q);
+
 
 #endif
