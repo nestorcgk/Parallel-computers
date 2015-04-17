@@ -26,11 +26,12 @@ void mf(int ny, int nx, int hy, int hx, const float* in, float* out)
     int edgey = nhy/2;
     int xwind = 0;
     int ywind = 0;
-    vector<float> window;
-    window.reserve(hx*nhy);
+    
     #pragma omp parallel for  
     for (int y = 0; y < ny; y++)
     {
+        vector<float> window;
+        window.reserve(hx*nhy);
         
         for (int x = 0; x < nx; x++)
         {
