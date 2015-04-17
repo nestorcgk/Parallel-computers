@@ -1,7 +1,7 @@
 #include "mf.h"
 
 
-float median(vector<float> med)
+static float median(vector<float> med)
 {
     float median = 0.0;
     nth_element(med.begin(), med.begin() + med.size()/2, med.end());

@@ -16,6 +16,6 @@ using namespace std;
 // in[x + y*nx] and out[x + y*nx].
 
 void mf(int ny, int nx, int hy, int hx, const float* in, float* out);
-float median(vector<float> med);
+
 
 #endif
