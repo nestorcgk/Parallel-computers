@@ -135,8 +135,8 @@ static void test1() {
     T(ny, nx, 0, 8, in, out, zero);
     T(ny, nx, 0,99, in, out, zero);
     T(ny, nx, 1, 1, in, out, exp11);
-    T(ny, nx, 2, 2, in, out, exp11);
-    T(ny, nx, 4, 4, in, out, zero);
+    //T(ny, nx, 2, 2, in, out, exp11);
+    //T(ny, nx, 4, 4, in, out, zero);
     T( 1,  n, 0, 1, in, out, exp1);
     T( 1,  n, 1, 1, in, out, exp1);
     T( 1,  n,99, 1, in, out, exp1);
