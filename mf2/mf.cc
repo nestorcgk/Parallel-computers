@@ -26,20 +26,15 @@ void mf(int ny, int nx, int hy, int hx, const float* in, float* out)
     int nhy = 2*hy+1;
     int edgex = nhx/2;
     int edgey = nhy/2;
-    //int xwind = 0;
-    //int ywind = 0;
     
     #pragma omp parallel for  
     for (int y = 0; y < ny; y++)
     {
-        //vector<float> window;
-        //window.reserve(hx*nhy);
         float *window = new float[nhy*nhx];
 
         for (int x = 0; x < nx; x++)
         {
             int k = 0;
-            //window.clear();
             for (int wx = 0; wx < nhx; wx++)
             {
                 for(int wy = 0; wy <nhy ; wy++)
@@ -48,8 +43,6 @@ void mf(int ny, int nx, int hy, int hx, const float* in, float* out)
                     int ywind = y + wy - edgey;
                     if(xwind >= 0 && xwind <nx && ywind >= 0 && ywind < ny)
                     {
-                        //window.push_back(in[xwind + nx*ywind]);
-                        //window.insert(window.begin()+k,in[xwind + nx*ywind]);
                         window[k] = in[xwind + nx*ywind];
                         k++;
                     }
