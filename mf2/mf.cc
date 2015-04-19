@@ -3,13 +3,11 @@
 float median(float * med,int k)
 {
     float median = 0.0;
-    //nth_element(med.begin(), med.begin() + med.size()/2, med.end());
     nth_element(med + 0, med + k/2, med +k);
 
     if(k % 2 == 0)
     {
         median = med[k/2];
-        //nth_element(med.begin(), med.begin() + med.size()/2 -1, med.end());
         nth_element(med + 0, med + k/2 -1, med +k);
         median = (median + med[(k/2) -1])/2.0;
 
