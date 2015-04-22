@@ -45,7 +45,7 @@ void correlate(int ny, int nx, const float* data, float* result){
     double *normalised = new double[ny*nx];
     normaliseInput(ny,nx,normalised,data);
     
-    for (int i = 0; i < ny; i++)
+    for (int i = 0; i < ny; i++)//(int i = 0; i < ny; i++)
     {
         for (int j = 0; j <= i; j++)
         {
