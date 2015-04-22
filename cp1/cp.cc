@@ -1,9 +1,4 @@
-#include <iostream>
-#include <cmath>
-#include <math.h>
-using namespace std;
-
-
+#include "cp.h"
 void normaliseInput(int ny, int nx, double* normalised, const float* data){
     
     for (int rowj = 0; rowj < ny; rowj++)

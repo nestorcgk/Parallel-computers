@@ -1,6 +1,9 @@
 #ifndef CP_H
 #define CP_H
-
+#include <omp.h>
+#include <iostream>
+#include <cmath>
+using namespace std;
 // ny: number of rows in the input matrix.
 // nx: number of columns in the input matrix.
 // data: input matrix, ny * nx elements.
