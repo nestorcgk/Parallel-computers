@@ -35,14 +35,14 @@ double calculateSSxy(int ny, int nx,int rowi, int rowj, const float* data){
 
     j = rowj*nx;
     for (int i = rowi*nx; i < rowi*nx + nx; i++) {
-        sum += data[i]*data[j];
+        sum += (double)data[i]*(double)data[j];
         j++;
         
     }
     return sum -(nx*meanx*meany);
 }
 
-float calculateCorrelation(int ny, int nx,int rowi, int rowj, const float* data){
+double calculateCorrelation(int ny, int nx,int rowi, int rowj, const float* data){
     double ssxy = calculateSSxy(ny,nx,rowi,rowj,data);
     double ssxx = calculateSSxx(ny,nx,rowi,data);
     double ssyy = calculateSSxx(ny,nx,rowj,data);
