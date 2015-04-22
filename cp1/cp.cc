@@ -1,63 +1,56 @@
 #include <iostream>
+#include <cmath>
 #include <math.h>
 using namespace std;
 
-//Sum of Squares (x) = N Var (X)
-double calculateSSxx(int ny, int nx, int rowj, const float* data){
-    double sumSquares = 0.0;
-    double mean = 0.0;
+
+void normaliseInput(int ny, int nx, double* normalised, const float* data){
     
-    for (int i = rowj*nx; i < rowj*nx + nx; i++) {
-        sumSquares += pow(data[i],2);
-        mean += data[i];
-    }
-    mean = mean / (double) nx;
+    for (int rowj = 0; rowj < ny; rowj++)
+    {
+        double sumSqRow = 0.0;
+        double mean = 0.0;
+        //substract mean
+        for (int i = rowj*nx; i < rowj*nx + nx; i++)
+        {
+            mean += (double)data[i];
+        }
+        mean /= (double)nx;
     
-    return sumSquares - nx * (pow(mean,2)) ;
-}
-
-
-//Sum of squares (x,y) = N * cov (X,Y)
-double calculateSSxy(int ny, int nx,int rowi, int rowj, const float* data){
-    double sum = 0.0;
-    double meanx = 0.0;
-    double meany = 0.0;
-
-
-    int j = rowj*nx;
-    for (int i = rowi*nx; i < rowi*nx + nx; i++) {
-        meanx += data[i];
-        meany += data[j];
-        j++;
-    }
-    meanx = meanx / nx;
-    meany = meany / nx;
-
-    j = rowj*nx;
-    for (int i = rowi*nx; i < rowi*nx + nx; i++) {
-        sum += (double)data[i]*(double)data[j];
-        j++;
+        for (int i = rowj*nx; i < rowj*nx + nx; i++)
+        {
+            double value = (double) data[i] - mean;
+            normalised[i] = value;
+            sumSqRow += pow(value,2);
+        }
         
+        for (int i = rowj*nx; i < rowj*nx + nx; i++)
+        {
+            double value2 = sqrt(sumSqRow);
+            normalised[i] /= value2;
+        }
     }
-    return sum -(nx*meanx*meany);
+}
+//calculates correlation of two rows given a normalised matrix
+double matProduct(int ny, int nx,int vec1,int vec2, double* normalised){
+    double res = 0.0;
+    //matrix[x + y*nx]
+    for (int i = 0; i < nx; i++) {
+        res += normalised[i + vec1*nx]*normalised[i + vec2*nx];
+    }
+    return res;
 }
 
-double calculateCorrelation(int ny, int nx,int rowi, int rowj, const float* data){
-    double ssxy = calculateSSxy(ny,nx,rowi,rowj,data);
-    double ssxx = calculateSSxx(ny,nx,rowi,data);
-    double ssyy = calculateSSxx(ny,nx,rowj,data);
-    
-    return ssxy / (sqrt(ssxx*ssyy));
-}
-
+//for all i and j with 0 <= j <= i < ny
 void correlate(int ny, int nx, const float* data, float* result){
+    double *normalised = new double[ny*nx];
+    normaliseInput(ny,nx,normalised,data);
     
     for (int i = 0; i < ny; i++)
     {
         for (int j = 0; j <= i; j++)
         {
-                result[i+j*ny] = calculateCorrelation(ny, nx, i, j, data);
+            result[i+j*ny] = matProduct(ny, nx, i, j, normalised);
         }
     }
 }
-
