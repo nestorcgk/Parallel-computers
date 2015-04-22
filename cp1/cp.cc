@@ -23,10 +23,9 @@ void normaliseInput(int ny, int nx, double* normalised, const float* data){
             normalised[i] = value;
             sumSqRow += pow(value,2);
         }
-        
+        double value2 = sqrt(sumSqRow);
         for (int i = rowj*nx; i < rowj*nx + nx; i++)
         {
-            double value2 = sqrt(sumSqRow);
             normalised[i] /= value2;
         }
     }
