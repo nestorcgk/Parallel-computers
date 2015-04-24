@@ -5,7 +5,7 @@ typedef double double4_t __attribute__
 
 //creates a vector matrix in which each element is double4_t with row  mean 0 and  sum of squares = 1
 void normaliseInputVec(int ny, int nx, double4_t* normalised, const float* data,int xdim){
-    #pragma omp parallel for
+    #pragma omp parallel for schedule(static,1)
     for (int rowj = 0; rowj < ny; rowj++)
     {
         double sumSqRow = 0.0;
@@ -64,7 +64,6 @@ double matProductVec(int ny, int nx,int vec1,int vec2, double4_t* normalised,int
         }else{
             accParam = (xdim - i);
         }
-
         for (int k = 0; k < accParam; k++)
         {
             temp[k] += normalised[i + k + vec1*xdim] * normalised[i + k + vec2*xdim];
@@ -78,16 +77,16 @@ double matProductVec(int ny, int nx,int vec1,int vec2, double4_t* normalised,int
 //creates all the correlated pais
 void correlate(int ny, int nx, const float* data, float* result){
     int xdim = (int) ceil(nx / (double) 4.0);
-    double4_t *normalised = double4_alloc(ny*xdim);
-    normaliseInputVec(ny,nx,normalised,data,xdim);
+    double4_t *normalised = double4_alloc(ny * xdim);
+    normaliseInputVec(ny ,nx, normalised ,data, xdim);
 
-
-    //#pragma omp parallel for
+    #pragma omp parallel for schedule(static,1)
     for (int i = 0; i < ny; i++)
     {
         for (int j = 0; j <= i; j++)
         {
-            result[i+j*ny] = matProductVec(ny, nx, i, j, normalised,xdim);
+            result[i + j*ny] = matProductVec(ny, nx, i, j, normalised, xdim);
         }
     }
+    free(normalised);
 }
