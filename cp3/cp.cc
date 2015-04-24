@@ -30,7 +30,18 @@ void normaliseInputVec(int ny, int nx, double4_t* normalised, const float* data,
         {
             normalised[rowj * xdim + col/4][col % 4] /= value2;
         }
+
+        for (int k = nx % 4; k < 4; k ++)
+        {
+           if (nx % 4 == 0)
+           {
+            break;
+           }
+           normalised[rowj * xdim + nx/4][k] = 0.0;
+        }
     }
+
+     
 }
 
 //Adds the accumulator that contains 4 double4_t vectors
