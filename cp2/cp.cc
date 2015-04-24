@@ -39,13 +39,17 @@ double matProduct(int ny, int nx,int vec1,int vec2, double* normalised){
 void correlate(int ny, int nx, const float* data, float* result){
     double *normalised = new double[ny*nx];
     normaliseInput(ny,nx,normalised,data);
-    
+
+
     #pragma omp parallel for
     for (int i = 0; i < ny; i++)//(int i = 0; i < ny; i++)
     {
         for (int j = 0; j <= i; j++)
         {
             result[i+j*ny] = matProduct(ny, nx, i, j, normalised);
+
         }
     }
+
+    free (normalised);
 }
