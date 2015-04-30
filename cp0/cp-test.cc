@@ -4,6 +4,9 @@
 #include "error.h"
 #include "timer.h"
 #include "cp.h"
+#ifdef CUDA_EXERCISE
+#include <cuda_runtime.h>
+#endif
 
 static void generate(int ny, int nx, float* data) {
     std::mt19937 rng;
@@ -75,15 +78,29 @@ static void report(double worst, int bad, double maxerr) {
 }
 
 static void test(double maxerr, int ny, int nx) {
-    std::vector<float> data(ny * nx);
-    generate(ny, nx, data.data());
-    std::vector<float> result(ny * ny);
+    float* data = NULL;
+    float* result = NULL;
+#ifdef CUDA_EXERCISE
+    cudaMallocHost((void**)&data, nx * ny * sizeof(float));
+    cudaMallocHost((void**)&result, ny * ny * sizeof(float));
+#else
+    data = new float[ny * nx];
+    result = new float[ny * ny];
+#endif
+    generate(ny, nx, data);
     std::cout << "cp\t" << ny << "\t" << nx << "\t" << std::flush;
-    { Timer t; correlate(ny, nx, data.data(), result.data()); }
+    { Timer t; correlate(ny, nx, data, result); }
     double worst = 0.0;
     int bad = 0;
-    verify(worst, bad, maxerr, ny, nx, data.data(), result.data());
+    verify(worst, bad, maxerr, ny, nx, data, result);
     report(worst, bad, maxerr);
+#ifdef CUDA_EXERCISE
+    cudaFreeHost(data);
+    cudaFreeHost(result);
+#else
+    delete[] data;
+    delete[] result;
+#endif
 }
 
 int main(int argc, const char** argv) {

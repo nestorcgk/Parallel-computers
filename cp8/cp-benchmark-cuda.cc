@@ -1,1 +1,0 @@
-../cp0/cp-benchmark-cuda.cc

@@ -7,10 +7,10 @@ cp.o: cp.cu
 pngcorrelate: pngcorrelate.o cp.o pngio.o error.o
 	$(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ -lpng
 
-cp-test: cp-test-cuda.o cp.o error.o
+cp-test: cp-test.o cp.o error.o
 	$(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+
 
-cp-benchmark: cp-benchmark-cuda.o cp.o error.o
+cp-benchmark: cp-benchmark.o cp.o error.o
 	$(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+
 
 include Makefile.dep
