@@ -17,7 +17,6 @@ void psort(int n, data_t* data) {
         sort(data + i * blockSize,data + (i+1)*blockSize);
     }
 
-	//}
     
     while (numBlocks/2 >= 1){
         //#pragma omp parallel num_threads(numBlocks/2)
