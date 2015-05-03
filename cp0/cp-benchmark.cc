@@ -4,22 +4,12 @@
 #include "error.h"
 #include "timer.h"
 #include "cp.h"
-#ifdef CUDA_EXERCISE
-#include <cuda_runtime.h>
-#endif
 
 static void benchmark(int ny, int nx) {
-    float* data = NULL;
-    float* result = NULL;
-#ifdef CUDA_EXERCISE
-    cudaMallocHost((void**)&data, nx * ny * sizeof(float));
-    cudaMallocHost((void**)&result, ny * ny * sizeof(float));
-#else
-    data = new float[ny * nx];
-    result = new float[ny * ny];
-#endif
     std::mt19937 rng;
     std::uniform_real_distribution<float> u(0.0f, 1.0f);
+    std::vector<float> data(ny * nx);
+    std::vector<float> result(ny * ny);
     for (int y = 0; y < ny; ++y) {
         for (int x = 0; x < nx; ++x) {
             float v = u(rng);
@@ -27,15 +17,8 @@ static void benchmark(int ny, int nx) {
         }
     }
     std::cout << "cp\t" << ny << "\t" << nx << "\t" << std::flush;
-    { Timer t; correlate(ny, nx, data, result); }
+    { Timer t; correlate(ny, nx, data.data(), result.data()); }
     std::cout << std::endl;
-#ifdef CUDA_EXERCISE
-    cudaFreeHost(data);
-    cudaFreeHost(result);
-#else
-    delete[] data;
-    delete[] result;
-#endif
 }
 
 int main(int argc, const char** argv) {

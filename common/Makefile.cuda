@@ -101,4 +101,3 @@ endif
 # Standard stuff.
 
 CXXFLAGS+=-isystem ${CUDA_PATH}/include
-CXXFLAGS+=-DCUDA_EXERCISE
