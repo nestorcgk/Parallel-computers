@@ -26,7 +26,7 @@ void normaliseInput(int ny, int nx, double* normalised, const float* data){
     }
 }
 //calculates correlation of two rows given a normalised matrix
-double matProduct(int ny, int nx,int vec1,int vec2, double* normalised){
+double matProduct(int nx,int vec1,int vec2, double* normalised){
     double res = 0.0;
     //matrix[x + y*nx]
     for (int i = 0; i < nx; i++) {
@@ -46,7 +46,7 @@ void correlate(int ny, int nx, const float* data, float* result){
     {
         for (int j = 0; j <= i; j++)
         {
-            result[i+j*ny] = matProduct(ny, nx, i, j, normalised);
+            result[i+j*ny] = matProduct(nx, i, j, normalised);
 
         }
     }

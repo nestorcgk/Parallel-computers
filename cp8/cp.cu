@@ -3,15 +3,19 @@
 #include <stdio.h>
 #include <math.h>
 
+#define CHECK_CUDA_ERROR(call) do { \
+        cudaError_t result_ = (call); \
+        if (result_ != cudaSuccess) { \
+            fprintf(stderr, #call " failed: %s\n", \
+                    cudaGetErrorString(result_)); \
+            exit(1); \
+        } \
+    } while(0)
 
-__global__ void cube(float * d_out, float * d_in){
-	int idx = threadIdx.x;
-    float f = d_in[idx];
-    d_out[idx] = f*f*f;
-}
+
 
 void normaliseInput(int ny, int nx, double* normalised, const float* data){
-    //#pragma omp parallel for
+    #pragma omp parallel for
     for (int rowj = 0; rowj < ny; rowj++)
     {
         double sumSqRow = 0.0;
@@ -37,62 +41,51 @@ void normaliseInput(int ny, int nx, double* normalised, const float* data){
     }
 }
 //calculates correlation of two rows given a normalised matrix
-__global__ void matProduct(int ny, int nx,int vec1,int vec2, double* normalised){
+__global__ void correlateCall(int ny, int nx, double* normalised, float * d_result){
     double res = 0.0;
-    //matrix[x + y*nx]
-    
-    for (int i = 0; i < nx; i++) {
-        res += normalised[i + vec1*nx]*normalised[i + vec2*nx];
+    int i = 16 * blockIdx.x + threadIdx.x;
+    int j = 16 * blockIdx.y + threadIdx.y;
+
+    if(j <= i)
+    {
+    for(int k = 0; k < nx ; k++){
+    	res += normalised[k + i*nx] * normalised[k + j*nx];
     }
-    result[vec1+vec2*ny] = res;
+    d_result[i + j*ny] = res;
+    }
 }
 
 
 
 void correlate(int ny, int nx, const float* data, float* result) {
     
-    //for (int i = 0; i < ny * ny; ++i) {
-    //    result[i] = 0.0f;
-    //}
-    const int ARRAY_SIZE = ny*nx;
-	const int ARRAY_BYTES = ARRAY_SIZE * sizeof(float);
+        const int DATA_SIZE = ny*nx;
+	const int RESULT_SIZE = ny*ny;
+	const int ARRAY_BYTES_FLOAT = RESULT_SIZE * sizeof(float);
+	const int ARRAY_BYTES_DOUBLE = DATA_SIZE * sizeof(double);
 
-	// declare GPU memory pointers
+	
 	float * d_data;
 	float * d_result;
 
-	//Normalize input
-	double *normalised = new double[ny*nx];
-    normaliseInput(ny,nx,normalised,data);
-
-	// allocate GPU memory
-	cudaMalloc((void**) &d_data, ARRAY_BYTES);
-	cudaMalloc((void**) &d_result, ARRAY_BYTES);
-
-	// transfer the array to the GPU
-	cudaMemcpy(d_data, data, ARRAY_BYTES, cudaMemcpyHostToDevice);
-
-	// launch the kernel
-	const dim3 blockSize(128, 1, 1);  
-  	const dim3 gridSize(ceil(nx/128.0), 1, 1);
-
-
-
-
-    #pragma omp parallel for
-    for (int i = 0; i < ny; i++)//(int i = 0; i < ny; i++)
-    {
-        for (int j = 0; j <= i; j++)
-        {
-        	matProduct<<<gridSize, blockSize>>>(d_result, d_data);
-            //result[i+j*ny] = matProduct(ny, nx, i, j, normalised);
-
-        }
-    }
 	
+	double *normalised = new double[ny*nx];
+        normaliseInput(ny,nx,normalised,data);
 
-	// copy back the result array to the CPU
-	cudaMemcpy(result, d_result, ARRAY_BYTES, cudaMemcpyDeviceToHost);
+	
+	CHECK_CUDA_ERROR(cudaMalloc((void**) &d_data, ARRAY_BYTES_DOUBLE));
+	CHECK_CUDA_ERROR(cudaMalloc((void**) &d_result, ARRAY_BYTES_FLOAT));
+
+	cudaMemcpy(d_data,normalised, ARRAY_BYTES_DOUBLE, cudaMemcpyHostToDevice);
+
+	const dim3 blockSize(16, 16, 1);  
+  	const dim3 gridSize(ceil(ny/16.0), ceil(ny/16.0), 1);
+
+        correlateCall<<<gridSize, blockSize>>>(ny,nx,normalised,d_result);
+        CHECK_CUDA_ERROR(cudaGetLastError());  		
+
+	
+	cudaMemcpy(result, d_result, ARRAY_BYTES_FLOAT, cudaMemcpyDeviceToHost);
 
 	cudaFree(d_data);
 	cudaFree(d_result);
