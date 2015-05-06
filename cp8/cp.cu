@@ -43,10 +43,10 @@ void normaliseInput(int ny, int nx, double* normalised, const float* data){
 //calculates correlation of two rows given a normalised matrix
 __global__ void correlateCall(int ny, int nx, double* normalised, float * d_result){
     double res = 0.0;
-    int i = 16 * blockIdx.x + threadIdx.x;
-    int j = 16 * blockIdx.y + threadIdx.y;
+    int i = 8 * blockIdx.x + threadIdx.x;
+    int j = 8 * blockIdx.y + threadIdx.y;
 
-    if(j <= i)
+    if(j <= i && i < ny)
     {
     for(int k = 0; k < nx ; k++){
     	res += normalised[k + i*nx] * normalised[k + j*nx];
@@ -65,7 +65,7 @@ void correlate(int ny, int nx, const float* data, float* result) {
 	const int ARRAY_BYTES_DOUBLE = DATA_SIZE * sizeof(double);
 
 	
-	float * d_data;
+	double * d_data;
 	float * d_result;
 
 	
@@ -78,10 +78,10 @@ void correlate(int ny, int nx, const float* data, float* result) {
 
 	cudaMemcpy(d_data,normalised, ARRAY_BYTES_DOUBLE, cudaMemcpyHostToDevice);
 
-	const dim3 blockSize(16, 16, 1);  
-  	const dim3 gridSize(ceil(ny/16.0), ceil(ny/16.0), 1);
+	const dim3 blockSize(8, 8, 1);  
+  	const dim3 gridSize(ceil(ny/8.0), ceil(ny/8.0), 1);
 
-        correlateCall<<<gridSize, blockSize>>>(ny,nx,normalised,d_result);
+        correlateCall<<<gridSize, blockSize>>>(ny,nx,d_data,d_result);
         CHECK_CUDA_ERROR(cudaGetLastError());  		
 
 	
