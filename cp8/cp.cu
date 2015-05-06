@@ -1,5 +1,7 @@
 #include "cp.h"
 #include <cuda_runtime.h>
+#include <stdio.h>
+
 
 __global__ void cube(float * d_out, float * d_in){
 	int idx = threadIdx.x;
