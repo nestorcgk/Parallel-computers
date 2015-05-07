@@ -42,10 +42,10 @@ void normaliseInput(int ny, int nx, double* normalised, const float* data){
 }
 
 //calculates correlation of two rows given a normalised matrix
-__global__ void correlateCall(int ny, int nx, double* normalised, float * d_result){
+__global__ void correlateCall(int ny, int nx, double* normalised, float * d_result, const int BLOCK_SIZE){
     double res = 0.0;
-    int i = 8 * blockIdx.x + threadIdx.x;
-    int j = 8 * blockIdx.y + threadIdx.y;
+    int i = BLOCK_SIZE * blockIdx.x + threadIdx.x;
+    int j = BLOCK_SIZE * blockIdx.y + threadIdx.y;
 
     if(j <= i && i < ny)
     {
@@ -61,6 +61,7 @@ __global__ void correlateCall(int ny, int nx, double* normalised, float * d_resu
 void correlate(int ny, int nx, const float* data, float* result) {
     const int DATA_SIZE = ny*nx;
 	const int RESULT_SIZE = ny*ny;
+    const int BLOCK_SIZE = 8;
 	const int ARRAY_BYTES_FLOAT = RESULT_SIZE * sizeof(float);
 	const int ARRAY_BYTES_DOUBLE = DATA_SIZE * sizeof(double);
 	//Create GPU pointers
@@ -75,10 +76,10 @@ void correlate(int ny, int nx, const float* data, float* result) {
 	cudaMalloc((void**) &d_result, ARRAY_BYTES_FLOAT);
     //Copy from host to device
 	cudaMemcpy(d_data,normalised, ARRAY_BYTES_DOUBLE, cudaMemcpyHostToDevice);
-	const dim3 blockSize(8, 8, 1);  
-  	const dim3 gridSize(ceil(ny/8.0), ceil(ny/8.0), 1);
+	const dim3 blockSize(BLOCK_SIZE, BLOCK_SIZE, 1);  
+  	const dim3 gridSize(ceil(ny/ (double) BLOCK_SIZE), ceil(ny/(double) BLOCK_SIZE), 1);
     //Kernel call
-    correlateCall<<<gridSize, blockSize>>>(ny,nx,d_data,d_result);
+    correlateCall<<<gridSize, blockSize>>>(ny,nx,d_data,d_result,BLOCK_SIZE);
     //Copy results from host to device 		
 	cudaMemcpy(result, d_result, ARRAY_BYTES_FLOAT, cudaMemcpyDeviceToHost);
 	//free Memory
