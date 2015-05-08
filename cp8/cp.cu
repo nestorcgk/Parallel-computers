@@ -15,7 +15,7 @@
 
 
 void normaliseInput(int ny, int nx, double* normalised, const float* data){
-    #pragma omp parallel for
+
     for (int rowj = 0; rowj < ny; rowj++)
     {
         double sumSqRow = 0.0;
