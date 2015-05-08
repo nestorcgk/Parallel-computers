@@ -32,8 +32,9 @@ void psort(int n, data_t* data) {
     {
 
     while (numBlocks/2 >= 1){
+        int cont = numBlocks/2;
         #pragma omp parallel for 
-        for (int j = 0; j < numBlocks / 2; j ++) {           
+        for (int j = 0; j < cont; j ++) {           
             int first = 2 * j * blockSize;
             int last = first + blockSize;
             int lastIndex = last + blockSize;
