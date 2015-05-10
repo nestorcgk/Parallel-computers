@@ -41,6 +41,13 @@ As the focus of this exercise was not in performance, it was not heavily optimis
 
 \begin{figure}[H]
 \centering
+\includegraphics[width=1\textwidth]{figures/w4_cp1Vscp8}
+\caption{Single threaded version vs GPU implementation in a 4000 * N image}
+\label{fig:pca_type}
+\end{figure}
+
+\begin{figure}[H]
+\centering
 \includegraphics[width=0.5\textwidth]{figures/w4_blockSizeTable}
 \caption{Time vs BlockSize table in a 4000 x 4000 image}
 \label{fig:pca_type}
@@ -50,10 +57,20 @@ The code was profiled with nvidia profiler and it was found that the kernel exec
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=1\textwidth]{figures/w4_timing}
+\includegraphics[width=0.1\textwidth]{figures/w4_timing}
 \caption{Detailed execution time in a 4000 x 4000 image}
 \label{fig:pca_type}
 \end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.5\textwidth]{figures/w4_benchmark}
+\caption{Benchmark results}
+\label{fig:pca_type}
+\end{figure}
+
+
+
 
 \subsection{So1 resubmission}
 NOTE: My last submission of so1 was rejected due to a fail in make DEBUG=2. However, as stated in email conversations, it was due to a "compiler bug" so I was allowed to resumbit without losing points.  

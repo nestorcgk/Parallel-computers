@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  9 MAY 2015 12:11
+This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  10 MAY 2015 23:17
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -532,6 +532,12 @@ LaTeX Warning: Label `fig:pca_type' multiply defined.
 
 LaTeX Warning: Label `fig:pca_type' multiply defined.
 
+
+LaTeX Warning: Label `fig:pca_type' multiply defined.
+
+
+LaTeX Warning: Label `fig:pca_type' multiply defined.
+
 )
 \openout1 = `week4.aux'.
 
@@ -618,60 +624,86 @@ Package pdftex.def Info: figures/w4_timevsBlockSize.png used on input line 37.
  [1
 
 {/usr/local/texlive/2014/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-<figures/w4_blockSizeTable.png, id=36, 124.465pt x 78.2925pt>
-File: figures/w4_blockSizeTable.png Graphic file (type png)
+<figures/w4_cp1Vscp8.png, id=36, 581.17125pt x 450.68375pt>
+File: figures/w4_cp1Vscp8.png Graphic file (type png)
 
-<use figures/w4_blockSizeTable.png>
-Package pdftex.def Info: figures/w4_blockSizeTable.png used on input line 44.
-(pdftex.def)             Requested size: 172.5pt x 108.51802pt.
-
-<figures/w4_timing.png, id=37, 512.91624pt x 97.36375pt>
-File: figures/w4_timing.png Graphic file (type png)
-
-<use figures/w4_timing.png>
-Package pdftex.def Info: figures/w4_timing.png used on input line 53.
-(pdftex.def)             Requested size: 345.0pt x 65.48889pt.
+<use figures/w4_cp1Vscp8.png>
+Package pdftex.def Info: figures/w4_cp1Vscp8.png used on input line 44.
+(pdftex.def)             Requested size: 345.0pt x 267.54466pt.
  [2pdfTeX warning (ext4): destination with the same identifier (name{figure.1})
  has been already used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.57 
-     pdfTeX warning (ext4): destination with the same identifier (name{figure.2
+l.48 
+      <./figures/w4_timevsBlockSize.png>]
+<figures/w4_blockSizeTable.png, id=43, 124.465pt x 78.2925pt>
+File: figures/w4_blockSizeTable.png Graphic file (type png)
+
+<use figures/w4_blockSizeTable.png>
+Package pdftex.def Info: figures/w4_blockSizeTable.png used on input line 51.
+(pdftex.def)             Requested size: 172.5pt x 108.51802pt.
+
+<figures/w4_timing.png, id=44, 512.91624pt x 97.36375pt>
+File: figures/w4_timing.png Graphic file (type png)
+
+<use figures/w4_timing.png>
+Package pdftex.def Info: figures/w4_timing.png used on input line 60.
+(pdftex.def)             Requested size: 34.5021pt x 6.54874pt.
+
+<figures/w4_benchmark.png, id=45, 247.92625pt x 520.94624pt>
+File: figures/w4_benchmark.png Graphic file (type png)
+
+<use figures/w4_benchmark.png>
+Package pdftex.def Info: figures/w4_benchmark.png used on input line 67.
+(pdftex.def)             Requested size: 172.5pt x 362.45802pt.
+ [3pdfTeX warning (ext4): destination with the same identifier (name{figure.2})
+ has been already used, duplicate ignored
+
+\AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
+                                                  \fi \fi 
+l.71 
+     pdfTeX warning (ext4): destination with the same identifier (name{figure.3
 }) has been already used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.57 
-      <./figures/w4_timevsBlockSize.png> <./figures/w4_blockSizeTable.png>]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 62.
-
-[3pdfTeX warning (ext4): destination with the same identifier (name{figure.3}) 
-has been already used, duplicate ignored
+l.71 
+     pdfTeX warning (ext4): destination with the same identifier (name{figure.4
+}) has been already used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.62 I\end{document}
-                     <./figures/w4_timing.png>]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 62.
+l.71 
+      <./figures/w4_cp1Vscp8.png> <./figures/w4_blockSizeTable.png> <./figures/
+w4_timing.png>]
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 79.
+ [4pdfTeX warning (ext4): destination with the same identifier (name{figure.5})
+ has been already used, duplicate ignored
+
+\AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
+                                                  \fi \fi 
+l.79 I\end{document}
+                     <./figures/w4_benchmark.png>]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 79.
 
 (/Users/Nes/Dropbox/ITAM/S_8/Parallel_computers/exercises/reports/.texpadtmp/we
 ek4.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 62.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 62.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 79.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 79.
 Package rerunfilecheck Info: File `week4.out' has not changed.
 (rerunfilecheck)             Checksum: <no file>.
 
 
 LaTeX Warning: There were multiply-defined labels.
 
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 62.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 79.
  ) 
 Here is how much of TeX's memory you used:
- 8035 strings out of 493117
- 114975 string characters out of 6135433
- 204310 words of memory out of 5000000
- 11384 multiletter control sequences out of 15000+600000
+ 8048 strings out of 493117
+ 115254 string characters out of 6135433
+ 204281 words of memory out of 5000000
+ 11392 multiletter control sequences out of 15000+600000
  9665 words of font info for 37 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  29i,7n,32p,398b,334s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -681,10 +713,10 @@ Here is how much of TeX's memory you used:
 sr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr
 /local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt12.pfb>
 Output written on /Users/Nes/Dropbox/ITAM/S_8/Parallel_computers/exercises/repo
-rts/.texpadtmp/week4.pdf (3 pages, 112907 bytes).
+rts/.texpadtmp/week4.pdf (4 pages, 214542 bytes).
 PDF statistics:
- 74 PDF objects out of 1000 (max. 8388607)
- 57 compressed objects within 1 object stream
- 12 named destinations out of 1000 (max. 500000)
- 56 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 85 PDF objects out of 1000 (max. 8388607)
+ 63 compressed objects within 1 object stream
+ 15 named destinations out of 1000 (max. 500000)
+ 66 words of extra memory for PDF output out of 10000 (max. 10000000)
 
