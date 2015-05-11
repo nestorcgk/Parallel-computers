@@ -23,12 +23,19 @@ static void benchmark(std::ostream& f, int ny, int nx) {
     f << std::endl;
 }
 
+static void benchmark(std::ostream& f, int ny, int nx, int iter) {
+    for (int i = 0; i < iter; ++i) {
+        benchmark(f, ny, nx);
+    }
+}
+
 int main(int argc, const char** argv) {
-    if (argc != 3) {
-        error("usage: cp-benchmark Y X");
+    if (argc < 3 || argc > 4) {
+        error("usage: cp-benchmark Y X [ITERATIONS]");
     }
     int ny = std::stoi(argv[1]);
     int nx = std::stoi(argv[2]);
+    int iter = argc == 4 ? std::stoi(argv[3]) : 1;
 
     const char* outfile = std::getenv("PPC_OUTPUT");
     if (outfile) {
@@ -36,12 +43,12 @@ int main(int argc, const char** argv) {
         if (f.fail()) {
             error(outfile, "cannot open for writing");
         }
-        benchmark(f, ny, nx);
+        benchmark(f, ny, nx, iter);
         f.close();
         if (f.fail()) {
             error(outfile, "write error");
         }
     } else {
-        benchmark(std::cout, ny, nx);
+        benchmark(std::cout, ny, nx, iter);
     }
 }
