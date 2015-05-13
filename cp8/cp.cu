@@ -46,11 +46,28 @@ __global__ void correlateCall(int ny, int nx, double* normalised, float * d_resu
     double res = 0.0;
     int i = BLOCK_SIZE * blockIdx.x + threadIdx.x;
     int j = BLOCK_SIZE * blockIdx.y + threadIdx.y;
+    __shared__ float blockMemi[nx*BLOCK_SIZE];
+    __shared__ float blockMemj[nx*BLOCK_SIZE];
+    
+    if(thread.Idy == 0)
+    {
+        for (int idx = 0; idx < nx; ++idx)
+        {
+            blockMemi[nx*threadIdx.x + threadIdx.x + idx] = normalised[idx + i*nx];
+        }
+    }
+    if(thread.idx == 0){
+        for (int idy = 0; idx < nx; ++idy)
+        {
+            blockMemj[nx*threadIdx.y + threadIdx.y + idy] = normalised[idy + j*nx];
+        }
+    }
+    __syncthreads(); //ensure completed writed to shared memory
 
     if(j <= i && i < ny)
     {
     for(int k = 0; k < nx ; k++){
-    	res += normalised[k + i*nx] * normalised[k + j*nx];
+        res += blockMemi[nx*threadIdx.x + threadIdx.x + k] * blockMemj[nx*threadIdx.y + threadIdx.y + k];
     }
     d_result[i + j*ny] = res;
     }
