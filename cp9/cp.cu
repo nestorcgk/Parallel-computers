@@ -16,7 +16,7 @@
 #define debug 0
 
 
-__global__ void correlate_call(int size_x, int size_y, int o_size_y, const float* input, float* output)
+__global__ void correlate_call(int size_x, int size_y, int ny, const float* input, float* output)
 {
 
     int large_square_size = BLOCK_SIZE * THREAD_ROWS;
@@ -28,8 +28,7 @@ __global__ void correlate_call(int size_x, int size_y, int o_size_y, const float
 
 
 
-    float buffer[THREAD_ROWS][THREAD_ROWS];
-    memset(buffer, 0, THREAD_ROWS*THREAD_ROWS*sizeof(float));
+    float buffer[THREAD_ROWS][THREAD_ROWS] = {0.0};
     //Allocate shared memory
     __shared__ float block1[BLOCK_SIZE][BLOCK_SIZE * THREAD_ROWS];
     __shared__ float block2[BLOCK_SIZE][BLOCK_SIZE * THREAD_ROWS];
@@ -52,7 +51,7 @@ __global__ void correlate_call(int size_x, int size_y, int o_size_y, const float
         
         __syncthreads();
 
-        if (!(x > o_size_y || y > o_size_y))
+        if (!(x > ny || y > ny))
         {
     
         for (int i=0; i < BLOCK_SIZE; ++i)
@@ -75,9 +74,9 @@ __global__ void correlate_call(int size_x, int size_y, int o_size_y, const float
     {
         for (int j_row = 0; j_row < THREAD_ROWS; ++j_row)
         {
-            if (x + j_row< o_size_y && y + i_row < o_size_y)
+            if (x + j_row< ny && y + i_row < ny)
             {
-                output[x + j_row + (y+i_row)*o_size_y] = buffer[i_row][j_row];
+                output[x + j_row + (y+i_row)*ny] = buffer[i_row][j_row];
             }
         }
     }
@@ -121,7 +120,7 @@ void normaliseInput(int ny,int nx, float* normalised,const float* data,int x_se,
 }
 
 void correlate(int ny, int nx, const float* data, float* result) {
-    
+   //required blocks 
     int x_se = (BLOCK_SIZE - nx % BLOCK_SIZE) % BLOCK_SIZE;
     int y_se = (BLOCK_SIZE*THREAD_ROWS - ny % (BLOCK_SIZE*THREAD_ROWS)) % (BLOCK_SIZE*THREAD_ROWS);
     const int ARRAY_BYTES_FLOAT_IN = (nx+x_se)*(ny+y_se) * sizeof(float);
