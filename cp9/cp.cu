@@ -1,115 +1,158 @@
 #include "cp.h"
 #include <cuda_runtime.h>
 #include <stdio.h>
-#include <math.h>
-
+#include <iostream>
 #define CHECK_CUDA_ERROR(call) do { \
-        cudaError_t result_ = (call); \
-        if (result_ != cudaSuccess) { \
-            fprintf(stderr, #call " failed: %s\n", \
-                    cudaGetErrorString(result_)); \
-            exit(1); \
-        } \
-    } while(0)
+    cudaError_t result_ = (call); \
+    if (result_ != cudaSuccess) { \
+        fprintf(stderr, #call " failed: %s\n", \
+                cudaGetErrorString(result_)); \
+        exit(1); \
+    } \
+} while(0)
+
+#define block_size 29 //25 or 29
+#define thread_rows 7 //7 or 6
+#define debug 0
 
 
-
-void normaliseInput(int ny, int nx, float* normalised, const float* data){
-
-    for (int rowj = 0; rowj < ny; rowj++)
-    {
-        double sumSqRow = 0.0;
-        double mean = 0.0;
-        //substract mean
-        for (int i = rowj*nx; i < rowj*nx + nx; i++)
-        {
-            mean += (double)data[i];
-        }
-        mean /= (double)nx;
-    
-        for (int i = rowj*nx; i < rowj*nx + nx; i++)
-        {
-            double value = (double) data[i] - mean;
-            normalised[i] = value;
-            sumSqRow += pow(value,2);
-        }
-        double value2 = sqrt(sumSqRow);
-        for (int i = rowj*nx; i < rowj*nx + nx; i++)
-        {
-            normalised[i] /= value2;
-        }
-    }
+__global__ void my_kernel(int size_x, int size_y, const double* input, double* output)
+{
+    int x = threadIdx.x + blockIdx.x * blockDim.x;
+    int y = threadIdx.y + blockIdx.y * blockDim.y;
+    if (x >= size_x || y >= size_y)
+        return;
+    output[x + size_x * y] = 2.0 * input[x + size_x * y];
 }
 
-//calculates correlation of two rows given a normalised matrix
-__global__ void correlateCall(int ny, int nx, float* normalised, float * d_result, const int BLOCK_SIZE){
-    float res = 0.0;
-    int i = BLOCK_SIZE * blockIdx.x + threadIdx.x;
-    int j = BLOCK_SIZE * blockIdx.y + threadIdx.y;
-    //load into shared memory
-    const int splitSize = nx/50;
-    const int memSize = nx * BLOCK_SIZE /50;
-    __shared__ float blockMemi[400];
-    __shared__ float blockMemj[400];
-    
-    for (int splits = 0; splits < splitSize; ++splits)
+
+__global__ void dot_product(int size_x, int size_y, int o_size_y, const float* input, float* output)
+{
+
+    int large_square_size = block_size * thread_rows;
+
+    int x = threadIdx.x*thread_rows + blockIdx.x * large_square_size;
+    int y = threadIdx.y*thread_rows + blockIdx.y * large_square_size;
+    if (blockIdx.y > blockIdx.x)
+        return;
+
+
+
+    float buffer[thread_rows][thread_rows];
+    memset(buffer, 0, thread_rows*thread_rows*sizeof(float));
+    //Allocate shared memory
+    __shared__ float block1[block_size][block_size * thread_rows];
+    __shared__ float block2[block_size][block_size * thread_rows];
+
+    int block1_info_y = threadIdx.y*thread_rows + blockIdx.y*large_square_size;
+    int block2_info_y = threadIdx.y*thread_rows + blockIdx.x*large_square_size;
+    //loop over blocks of input matrix
+    for (int b = 0; b < (size_x + block_size - 1)/block_size; ++b)
     {
-        if(threadIdx.y == 0)
-        {
-            for (int idx = 0; idx < splitSize; ++idx) //verify when it exceeds
-            {
-                blockMemi[splitSize*threadIdx.x + idx] = normalised[splitSize*splits + idx + i*nx];
-            }
-        }
-        if(threadIdx.x == 0)
-        {
-            for (int idy = 0; idy < splitSize; ++idy)
-            {
-                blockMemj[splitSize*threadIdx.y + idy] = normalised[splitSize*splits + idy + j*nx];
-            }
-        }
+
+        //One thread loads two value of each of the input matrix.
+        int block1_info_x = threadIdx.x + b*block_size;        
+        int block2_info_x = threadIdx.x + b*block_size;
+        
+        for (int row = 0; row < thread_rows; ++row)
+            block1[threadIdx.x][threadIdx.y*thread_rows + row] = input[block1_info_x*size_y + block1_info_y + row];
+
+        for (int row = 0; row < thread_rows; ++row)
+            block2[threadIdx.x][threadIdx.y*thread_rows + row] = input[block2_info_x*size_y + block2_info_y + row];
+        
         __syncthreads();
 
-        if(j <= i && i < ny)
+        if (!(x > o_size_y || y > o_size_y))
         {
-        for(int k = 0; k < memSize ; k++){
-            res += blockMemi[splitSize*threadIdx.x + k] * blockMemj[splitSize*threadIdx.y + k];
-            printf ("Decimals: %d %ld\n", threadIdx.x);
-	}
-        
+    
+        for (int i=0; i < block_size; ++i)
+        {     
+            for (int i_row = 0; i_row < thread_rows; ++i_row)
+            {
+                for (int j_row = 0; j_row < thread_rows; ++j_row)
+                {
+
+                    buffer[i_row][j_row] += block1[i][threadIdx.y*thread_rows + i_row] * block2[i][threadIdx.x*thread_rows + j_row];
+                }
+            }
+        }
+        }
+    __syncthreads();
+
+    }
+
+    for (int i_row = 0; i_row < thread_rows; ++i_row)
+    {
+        for (int j_row = 0; j_row < thread_rows; ++j_row)
+        {
+            if (x + j_row< o_size_y && y + i_row < o_size_y)
+            {
+                output[x + j_row + (y+i_row)*o_size_y] = buffer[i_row][j_row];
+            }
         }
     }
-    d_result[i + j*ny] = res;
-}
 
+}
 
 
 void correlate(int ny, int nx, const float* data, float* result) {
-    const int DATA_SIZE = ny*nx;
-    const int RESULT_SIZE = ny*ny;
-    const int BLOCK_SIZE = 8;
-    const int ARRAY_BYTES_RESULT = RESULT_SIZE * sizeof(float);
-    const int ARRAY_BYTES_DATA = DATA_SIZE * sizeof(float);
-    //Create GPU pointers
-    float * d_data;
-    float * d_result;
 
-    float *normalised = new float[ny*nx];
-    normaliseInput(ny,nx,normalised,data);
+    int x_padding = (block_size - nx % block_size) % block_size;
+    int y_padding = (block_size*thread_rows - ny % (block_size*thread_rows)) % (block_size*thread_rows);
+    float *normalized = new float[(ny+y_padding)*(nx+x_padding)];
 
-    //Allocate GPU memory
-    cudaMalloc((void**) &d_data, ARRAY_BYTES_DATA);
-    cudaMalloc((void**) &d_result, ARRAY_BYTES_RESULT);
-    //Copy from host to device
-    cudaMemcpy(d_data,normalised, ARRAY_BYTES_DATA, cudaMemcpyHostToDevice);
-    const dim3 blockSize(BLOCK_SIZE, BLOCK_SIZE, 1);  
-    const dim3 gridSize(ceil(ny/ (double) BLOCK_SIZE), ceil(ny/(double) BLOCK_SIZE), 1);
-    //Kernel call
-    correlateCall<<<gridSize, blockSize>>>(ny,nx,d_data,d_result,BLOCK_SIZE);
-    //Copy results from host to device      
-    cudaMemcpy(result, d_result, ARRAY_BYTES_RESULT, cudaMemcpyDeviceToHost);
-    //free Memory
-    delete [] normalised;
-    cudaFree(d_data);
-    cudaFree(d_result);
+    for (int i=0; i<ny; ++i)
+    {
+        double mean = 0;
+        double sum = 0;
+        double product = 0;
+        double var = 0;
+        for (int k=0; k<nx; ++k)
+        {
+            double x = data[i*nx + k];
+            sum += x;
+            product += x*x;
+        }
+        mean = sum/nx;
+        var = product -nx*mean*mean;
+
+        for (int k=0; k<nx; ++k)
+        {
+            normalized[(ny+y_padding)*k + i] = (data[i*nx + k] - mean)/sqrt(var);
+        }
+        for (int k=nx; k<nx+x_padding; ++k)
+        {
+            normalized[(ny+y_padding)*k + i] = 0;
+        }
+
+    }
+
+    for (int i=ny; i<ny+y_padding; ++i)
+    {
+        for (int k=0; k<nx+x_padding; ++k)
+        {
+            normalized[(ny+y_padding)*k + i] = 0;
+        }
+    }
+
+    float *dev_input;
+    float *dev_output;
+
+    //allocates memory
+    CHECK_CUDA_ERROR(cudaMalloc((void **) &dev_input, (nx+x_padding)*(ny+y_padding) * sizeof(float)));
+    CHECK_CUDA_ERROR(cudaMalloc((void **) &dev_output, ny*ny * sizeof(float)));
+    //copy array to GPU
+    CHECK_CUDA_ERROR(cudaMemcpy(dev_input, normalized, (nx+x_padding)*(ny+y_padding)*sizeof(float), cudaMemcpyHostToDevice));
+
+    dim3 szBlock(block_size, block_size);
+    dim3 szGrid((ny + szBlock.x*thread_rows - 1) / (szBlock.x*thread_rows), (ny + szBlock.y*thread_rows - 1) / (szBlock.y*thread_rows));
+    dot_product <<< szGrid, szBlock >>> (nx + x_padding, ny + y_padding, ny, dev_input, dev_output);
+    CHECK_CUDA_ERROR(cudaGetLastError());
+    CHECK_CUDA_ERROR(cudaMemcpy(result, dev_output, ny*ny*sizeof(float), cudaMemcpyDeviceToHost));
+    CHECK_CUDA_ERROR(cudaFree(dev_input));
+    CHECK_CUDA_ERROR(cudaFree(dev_output));
+    delete [] normalized;
+
 }
+
+
