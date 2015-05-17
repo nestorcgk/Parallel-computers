@@ -53,10 +53,15 @@ __global__ void correlateCall(int ny, int nx, float* normalised, float * d_resul
     int i = BLOCK_SIZE * blockIdx.x + threadIdx.x;
     int j = BLOCK_SIZE * blockIdx.y + threadIdx.y;
 
-    if(i <= j && j < ny)
+    if(j <= i && i < ny)
     {
-    for(int k = 0; k < nx ; k++){
+    for(int k = 0; k < ny ; k++){
+	int ind1 = i + k*nx;
+	int ind2 = j + k*nx;
+	if(ind1 < ny*nx && ind2 < ny*nx)
+	{
         res += normalised[i + k*nx] * normalised[j + k*nx];
+	}
     }
     d_result[i + j*ny] = res;
     }
