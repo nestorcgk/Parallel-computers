@@ -13,7 +13,7 @@
 
 #define block_size 27
 #define thread_rows 7 
-#define debug 0
+
 
 
 __global__ void my_kernel(int size_x, int size_y, const double* input, double* output)
@@ -94,64 +94,70 @@ __global__ void dot_product(int size_x, int size_y, int o_size_y, const float* i
 
 }
 
-
-void correlate(int ny, int nx, const float* data, float* result) {
-
-    int x_padding = (block_size - nx % block_size) % block_size;
-    int y_padding = (block_size*thread_rows - ny % (block_size*thread_rows)) % (block_size*thread_rows);
-    float *normalized = new float[(ny+y_padding)*(nx+x_padding)];
-
-    for (int i=0; i<ny; ++i)
+void normaliseInput(int ny, int nx, double* normalised, const float* data, int x_se, int y_se){
+    for (int i = 0; i < ny; ++i)
     {
         double mean = 0;
         double sum = 0;
-        double product = 0;
+        double sumSqRow = 0;
         double var = 0;
-        for (int k=0; k<nx; ++k)
+        for (int k = 0; k < nx; k++)
         {
             double x = data[i*nx + k];
             sum += x;
-            product += x*x;
+            sumSqRow += x*x;
         }
-        mean = sum/nx;
-        var = product -nx*mean*mean;
+        
+        var = sumSqRow -nx*mean*mean;
+        mean = sum / nx;
 
         for (int k=0; k<nx; ++k)
         {
-            normalized[(ny+y_padding)*k + i] = (data[i*nx + k] - mean)/sqrt(var);
+            normalised[(ny+y_se)*k + i] = (data[i*nx + k] - mean)/sqrt(var);
         }
-        for (int k=nx; k<nx+x_padding; ++k)
+
+        for (int k=nx; k<nx+x_se; ++k)
         {
-            normalized[(ny+y_padding)*k + i] = 0;
+            normalised[i + (ny+y_se)*k] = 0;
         }
 
     }
 
-    for (int i=ny; i<ny+y_padding; ++i)
+    for (int i = ny; i < ny + y_se; i++)
     {
-        for (int k=0; k<nx+x_padding; ++k)
+        for (int k = 0; k < nx + x_se; k++)
         {
-            normalized[(ny+y_padding)*k + i] = 0;
+            normalised[i + (ny + y_se) * k] = 0;
         }
     }
+}
+
+
+void correlate(int ny, int nx, const float* data, float* result) {
+
+    int x_se = (block_size - nx % block_size) % block_size;
+    int y_se = (block_size*thread_rows - ny % (block_size*thread_rows)) % (block_size*thread_rows);
+    float *normalised = new float[(ny+y_se)*(nx+x_se)];
+    normaliseInput(ny,nx,normalised,data,x_se,y_se);
+    
 
     float *dev_input;
     float *dev_output;
 
     //allocates memory
-    CHECK_CUDA_ERROR(cudaMalloc((void **) &dev_input, (nx+x_padding)*(ny+y_padding) * sizeof(float)));
+    CHECK_CUDA_ERROR(cudaMalloc((void **) &dev_input, (nx+x_se)*(ny+y_se) * sizeof(float)));
     CHECK_CUDA_ERROR(cudaMalloc((void **) &dev_output, ny*ny * sizeof(float)));
     //copy array to GPU
-    CHECK_CUDA_ERROR(cudaMemcpy(dev_input, normalized, (nx+x_padding)*(ny+y_padding)*sizeof(float), cudaMemcpyHostToDevice));
+    CHECK_CUDA_ERROR(cudaMemcpy(dev_input, normalised, (nx+x_se)*(ny+y_se)*sizeof(float), cudaMemcpyHostToDevice));
 
     dim3 szBlock(block_size, block_size);
     dim3 szGrid((ny + szBlock.x*thread_rows - 1) / (szBlock.x*thread_rows), (ny + szBlock.y*thread_rows - 1) / (szBlock.y*thread_rows));
-    dot_product <<< szGrid, szBlock >>> (nx + x_padding, ny + y_padding, ny, dev_input, dev_output);
+    dot_product <<< szGrid, szBlock >>> (nx + x_se, ny + y_se, ny, dev_input, dev_output);
     CHECK_CUDA_ERROR(cudaGetLastError());
     CHECK_CUDA_ERROR(cudaMemcpy(result, dev_output, ny*ny*sizeof(float), cudaMemcpyDeviceToHost));
     CHECK_CUDA_ERROR(cudaFree(dev_input));
     CHECK_CUDA_ERROR(cudaFree(dev_output));
-    delete [] normalized;
+    delete [] normalised;
 
 }
 
