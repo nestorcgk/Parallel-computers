@@ -12,7 +12,7 @@
 } while(0)
 
 #define BLOCK_SIZE 27
-#define THREAD_ROWS 7 
+#define THREAD_ROWS 6 
 #define debug 0
 
 
@@ -95,7 +95,7 @@ __global__ void dot_product(int size_x, int size_y, int o_size_y, const float* i
 }
 
 void normaliseInput(int ny,int nx, float* normalised,const float* data,int x_se, int y_se){
-    for (int i=0; i<ny; ++i)
+    for (int i = 0; i < ny; i++)
     {
         double mean = 0;
         double sum = 0;
@@ -121,9 +121,9 @@ void normaliseInput(int ny,int nx, float* normalised,const float* data,int x_se,
 
     }
 
-    for (int i = ny; i < ny+y_se; i++)
+    for (int i = ny; i < ny + y_se; i++)
     {
-        for (int k=0; k<nx+x_se; ++k)
+        for (int k = 0; k < nx+x_se; k++)
         {
             normalised[i + (ny+y_se)*k] = 0;
         }
