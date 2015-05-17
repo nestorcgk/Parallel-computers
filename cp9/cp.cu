@@ -16,17 +16,7 @@
 #define debug 0
 
 
-__global__ void my_kernel(int size_x, int size_y, const double* input, double* output)
-{
-    int x = threadIdx.x + blockIdx.x * blockDim.x;
-    int y = threadIdx.y + blockIdx.y * blockDim.y;
-    if (x >= size_x || y >= size_y)
-        return;
-    output[x + size_x * y] = 2.0 * input[x + size_x * y];
-}
-
-
-__global__ void dot_product(int size_x, int size_y, int o_size_y, const float* input, float* output)
+__global__ void correlate_call(int size_x, int size_y, int o_size_y, const float* input, float* output)
 {
 
     int large_square_size = BLOCK_SIZE * THREAD_ROWS;
@@ -150,7 +140,7 @@ void correlate(int ny, int nx, const float* data, float* result) {
     dim3 blockSize(BLOCK_SIZE, BLOCK_SIZE);
     dim3 gridSize((ny + blockSize.x*THREAD_ROWS - 1) / (blockSize.x*THREAD_ROWS), (ny + blockSize.y*THREAD_ROWS - 1) / (blockSize.y*THREAD_ROWS));
     //Execute Kernel
-    dot_product <<< gridSize, blockSize >>> (nx + x_se, ny + y_se, ny, d_input, d_output);
+    correlate_call <<< gridSize, blockSize >>> (nx + x_se, ny + y_se, ny, d_input, d_output);
     CHECK_CUDA_ERROR(cudaGetLastError());
     CHECK_CUDA_ERROR(cudaMemcpy(result, d_output, ARRAY_BYTES_FLOAT_OUT, cudaMemcpyDeviceToHost));
     //Free memory
