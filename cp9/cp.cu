@@ -11,8 +11,8 @@
     } \
 } while(0)
 
-#define block_size 29 //25 or 29
-#define thread_rows 7 //7 or 6
+#define block_size 27
+#define thread_rows 7 
 #define debug 0
 
 
