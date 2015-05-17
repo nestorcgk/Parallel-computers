@@ -14,7 +14,7 @@
 
 
 
-void normaliseInput(int ny, int nx, double* normalised, const float* data){
+void normaliseInput(int ny, int nx, float* normalised, const float* data){
 
     for (int rowj = 0; rowj < ny; rowj++)
     {
@@ -42,8 +42,8 @@ void normaliseInput(int ny, int nx, double* normalised, const float* data){
 }
 
 //calculates correlation of two rows given a normalised matrix
-__global__ void correlateCall(int ny, int nx, double* normalised, float * d_result, const int BLOCK_SIZE){
-    double res = 0.0;
+__global__ void correlateCall(int ny, int nx, float* normalised, float * d_result, const int BLOCK_SIZE){
+    float res = 0.0;
     int i = BLOCK_SIZE * blockIdx.x + threadIdx.x;
     int j = BLOCK_SIZE * blockIdx.y + threadIdx.y;
 
@@ -62,26 +62,26 @@ void correlate(int ny, int nx, const float* data, float* result) {
     const int DATA_SIZE = ny*nx;
     const int RESULT_SIZE = ny*ny;
     const int BLOCK_SIZE = 8;
-    const int ARRAY_BYTES_FLOAT = RESULT_SIZE * sizeof(float);
-    const int ARRAY_BYTES_DOUBLE = DATA_SIZE * sizeof(double);
+    const int ARRAY_BYTES_RESULT = RESULT_SIZE * sizeof(float);
+    const int ARRAY_BYTES_DATA = DATA_SIZE * sizeof(float);
     //Create GPU pointers
-    double * d_data;
+    float * d_data;
     float * d_result;
 
-    double *normalised = new double[ny*nx];
+    float *normalised = new float[ny*nx];
     normaliseInput(ny,nx,normalised,data);
 
     //Allocate GPU memory
-    cudaMalloc((void**) &d_data, ARRAY_BYTES_DOUBLE);
-    cudaMalloc((void**) &d_result, ARRAY_BYTES_FLOAT);
+    cudaMalloc((void**) &d_data, ARRAY_BYTES_DATA;
+    cudaMalloc((void**) &d_result, ARRAY_BYTES_RESULT);
     //Copy from host to device
-    cudaMemcpy(d_data,normalised, ARRAY_BYTES_DOUBLE, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_data,normalised, ARRAY_BYTES_DATA, cudaMemcpyHostToDevice);
     const dim3 blockSize(BLOCK_SIZE, BLOCK_SIZE, 1);  
     const dim3 gridSize(ceil(ny/ (double) BLOCK_SIZE), ceil(ny/(double) BLOCK_SIZE), 1);
     //Kernel call
     correlateCall<<<gridSize, blockSize>>>(ny,nx,d_data,d_result,BLOCK_SIZE);
     //Copy results from host to device      
-    cudaMemcpy(result, d_result, ARRAY_BYTES_FLOAT, cudaMemcpyDeviceToHost);
+    cudaMemcpy(result, d_result, ARRAY_BYTES_RESULT, cudaMemcpyDeviceToHost);
     //free Memory
     delete [] normalised;
     cudaFree(d_data);
