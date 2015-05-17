@@ -46,28 +46,11 @@ __global__ void correlateCall(int ny, int nx, double* normalised, float * d_resu
     double res = 0.0;
     int i = BLOCK_SIZE * blockIdx.x + threadIdx.x;
     int j = BLOCK_SIZE * blockIdx.y + threadIdx.y;
-    __shared__ float blockMemi[nx*BLOCK_SIZE];
-    __shared__ float blockMemj[nx*BLOCK_SIZE];
-    
-    if(thread.Idy == 0)
-    {
-        for (int idx = 0; idx < nx; ++idx)
-        {
-            blockMemi[nx*threadIdx.x + threadIdx.x + idx] = normalised[idx + i*nx];
-        }
-    }
-    if(thread.idx == 0){
-        for (int idy = 0; idx < nx; ++idy)
-        {
-            blockMemj[nx*threadIdx.y + threadIdx.y + idy] = normalised[idy + j*nx];
-        }
-    }
-    __syncthreads(); //ensure completed writed to shared memory
 
     if(j <= i && i < ny)
     {
     for(int k = 0; k < nx ; k++){
-        res += blockMemi[nx*threadIdx.x + threadIdx.x + k] * blockMemj[nx*threadIdx.y + threadIdx.y + k];
+        res += normalised[k + i*nx] * normalised[k + j*nx];
     }
     d_result[i + j*ny] = res;
     }
@@ -77,30 +60,30 @@ __global__ void correlateCall(int ny, int nx, double* normalised, float * d_resu
 
 void correlate(int ny, int nx, const float* data, float* result) {
     const int DATA_SIZE = ny*nx;
-	const int RESULT_SIZE = ny*ny;
+    const int RESULT_SIZE = ny*ny;
     const int BLOCK_SIZE = 8;
-	const int ARRAY_BYTES_FLOAT = RESULT_SIZE * sizeof(float);
-	const int ARRAY_BYTES_DOUBLE = DATA_SIZE * sizeof(double);
-	//Create GPU pointers
+    const int ARRAY_BYTES_FLOAT = RESULT_SIZE * sizeof(float);
+    const int ARRAY_BYTES_DOUBLE = DATA_SIZE * sizeof(double);
+    //Create GPU pointers
     double * d_data;
-	float * d_result;
+    float * d_result;
 
-	double *normalised = new double[ny*nx];
+    double *normalised = new double[ny*nx];
     normaliseInput(ny,nx,normalised,data);
 
     //Allocate GPU memory
-	cudaMalloc((void**) &d_data, ARRAY_BYTES_DOUBLE);
-	cudaMalloc((void**) &d_result, ARRAY_BYTES_FLOAT);
+    cudaMalloc((void**) &d_data, ARRAY_BYTES_DOUBLE);
+    cudaMalloc((void**) &d_result, ARRAY_BYTES_FLOAT);
     //Copy from host to device
-	cudaMemcpy(d_data,normalised, ARRAY_BYTES_DOUBLE, cudaMemcpyHostToDevice);
-	const dim3 blockSize(BLOCK_SIZE, BLOCK_SIZE, 1);  
-  	const dim3 gridSize(ceil(ny/ (double) BLOCK_SIZE), ceil(ny/(double) BLOCK_SIZE), 1);
+    cudaMemcpy(d_data,normalised, ARRAY_BYTES_DOUBLE, cudaMemcpyHostToDevice);
+    const dim3 blockSize(BLOCK_SIZE, BLOCK_SIZE, 1);  
+    const dim3 gridSize(ceil(ny/ (double) BLOCK_SIZE), ceil(ny/(double) BLOCK_SIZE), 1);
     //Kernel call
     correlateCall<<<gridSize, blockSize>>>(ny,nx,d_data,d_result,BLOCK_SIZE);
-    //Copy results from host to device 		
-	cudaMemcpy(result, d_result, ARRAY_BYTES_FLOAT, cudaMemcpyDeviceToHost);
-	//free Memory
+    //Copy results from host to device      
+    cudaMemcpy(result, d_result, ARRAY_BYTES_FLOAT, cudaMemcpyDeviceToHost);
+    //free Memory
     delete [] normalised;
     cudaFree(d_data);
-	cudaFree(d_result);
+    cudaFree(d_result);
 }
