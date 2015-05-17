@@ -46,14 +46,39 @@ __global__ void correlateCall(int ny, int nx, float* normalised, float * d_resul
     float res = 0.0;
     int i = BLOCK_SIZE * blockIdx.x + threadIdx.x;
     int j = BLOCK_SIZE * blockIdx.y + threadIdx.y;
-    __shared__ float blockMem
-    if(j <= i && i < ny)
+    //load into shared memory
+    const int splitSize = nx/50;
+    const int memSize = nx * BLOCK_SIZE /50;
+    __shared__ float blockMemi[400];
+    __shared__ float blockMemj[400];
+    
+    for (int splits = 0; splits < splitSize; ++splits)
     {
-    for(int k = 0; k < nx ; k++){
-        res += normalised[k + i*nx] * normalised[k + j*nx];
+        if(thread.Idy == 0)
+        {
+            for (int idx = 0; idx < splitSize; ++idx) //verify when it exceeds
+            {
+                blockMemi[splitSize*threadIdx.x + idx] = normalised[splitSize*splits + idx + i*nx];
+            }
+        }
+        if(thread.idx == 0)
+        {
+            for (int idy = 0; idy < splitSize; ++idy)
+            {
+                blockMemj[splitSize*threadIdx.y + idy] = normalised[splitSize*splits + idy + j*nx];
+            }
+        }
+        __syncthreads();
+
+        if(j <= i && i < ny)
+        {
+        for(int k = 0; k < memSize ; k++){
+            res += blockMemi[splitSize*threadIdx.x + k] * blockMemj[splitSize*threadIdx.y + k];
+        }
+        
+        }
     }
     d_result[i + j*ny] = res;
-    }
 }
 
 
