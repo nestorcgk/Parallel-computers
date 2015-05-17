@@ -56,12 +56,12 @@ __global__ void correlate_call(int size_x, int size_y, int ny, const float* inpu
     
         for (int i=0; i < BLOCK_SIZE; ++i)
         {     
-            for (int i_row = 0; i_row < THREAD_ROWS; ++i_row)
+            for (int veci_r = 0; veci_r < THREAD_ROWS; veci_r++)
             {
-                for (int j_row = 0; j_row < THREAD_ROWS; ++j_row)
+                for (int vecj_r = 0; vecj_r < THREAD_ROWS; vecj_r++)
                 {
 
-                    buffer[i_row][j_row] += block1[i][threadIdx.y*THREAD_ROWS + i_row] * block2[i][threadIdx.x*THREAD_ROWS + j_row];
+                    buffer[veci_r][vecj_r] += block1[i][threadIdx.y*THREAD_ROWS + veci_r] * block2[i][threadIdx.x*THREAD_ROWS + vecj_r];
                 }
             }
         }
@@ -70,13 +70,13 @@ __global__ void correlate_call(int size_x, int size_y, int ny, const float* inpu
 
     }
 
-    for (int i_row = 0; i_row < THREAD_ROWS; ++i_row)
+    for (int veci_r = 0; veci_r < THREAD_ROWS; veci_r++)
     {
-        for (int j_row = 0; j_row < THREAD_ROWS; ++j_row)
+        for (int vecj_r = 0; vecj_r < THREAD_ROWS; vecj_r++)
         {
-            if (x + j_row< ny && y + i_row < ny)
+            if (x + vecj_r< ny && y + veci_r < ny)
             {
-                output[x + j_row + (y+i_row)*ny] = buffer[i_row][j_row];
+                output[x + vecj_r + (y+veci_r)*ny] = buffer[veci_r][vecj_r];
             }
         }
     }
