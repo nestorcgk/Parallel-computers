@@ -94,7 +94,7 @@ __global__ void dot_product(int size_x, int size_y, int o_size_y, const float* i
 
 }
 
-void normaliseInput(int ny,int nx, float* normalised, float* data,int x_padding, int y_padding){
+void normaliseInput(int ny,int nx, float* normalised,const float* data,int x_padding, int y_padding){
     for (int i=0; i<ny; ++i)
     {
         double mean = 0;
@@ -132,26 +132,26 @@ void normaliseInput(int ny,int nx, float* normalised, float* data,int x_padding,
 
 void correlate(int ny, int nx, const float* data, float* result) {
 
-    int x_padding = (block_size - nx % block_size) % block_size;
-    int y_padding = (block_size*thread_rows - ny % (block_size*thread_rows)) % (block_size*thread_rows);
-    float *normalised = new float[(ny+y_padding)*(nx+x_padding)];
-    void normaliseInput(ny,nx,normalised,data,x_padding,y_padding);
-    
-
+    int x_se = (block_size - nx % block_size) % block_size;
+    int y_se = (block_size*thread_rows - ny % (block_size*thread_rows)) % (block_size*thread_rows);
+    float *normalised = new float[(ny+y_se)*(nx+x_se)];
+    normaliseInput(ny,nx,normalised,data,x_se,y_se);
     float *dev_input;
     float *dev_output;
 
-    //allocates memory
-    CHECK_CUDA_ERROR(cudaMalloc((void **) &dev_input, (nx+x_padding)*(ny+y_padding) * sizeof(float)));
+    //Allocate GPU memory
+    CHECK_CUDA_ERROR(cudaMalloc((void **) &dev_input, (nx+x_se)*(ny+y_se) * sizeof(float)));
     CHECK_CUDA_ERROR(cudaMalloc((void **) &dev_output, ny*ny * sizeof(float)));
-    //copy array to GPU
-    CHECK_CUDA_ERROR(cudaMemcpy(dev_input, normalised, (nx+x_padding)*(ny+y_padding)*sizeof(float), cudaMemcpyHostToDevice));
+    //Copy from host to device
+    CHECK_CUDA_ERROR(cudaMemcpy(dev_input, normalised, (nx+x_se)*(ny+y_se)*sizeof(float), cudaMemcpyHostToDevice));
 
     dim3 szBlock(block_size, block_size);
     dim3 szGrid((ny + szBlock.x*thread_rows - 1) / (szBlock.x*thread_rows), (ny + szBlock.y*thread_rows - 1) / (szBlock.y*thread_rows));
-    dot_product <<< szGrid, szBlock >>> (nx + x_padding, ny + y_padding, ny, dev_input, dev_output);
+    //Execute Kernel
+    dot_product <<< szGrid, szBlock >>> (nx + x_se, ny + y_se, ny, dev_input, dev_output);
     CHECK_CUDA_ERROR(cudaGetLastError());
     CHECK_CUDA_ERROR(cudaMemcpy(result, dev_output, ny*ny*sizeof(float), cudaMemcpyDeviceToHost));
+    //Free memory
     CHECK_CUDA_ERROR(cudaFree(dev_input));
     CHECK_CUDA_ERROR(cudaFree(dev_output));
     delete [] normalised;
