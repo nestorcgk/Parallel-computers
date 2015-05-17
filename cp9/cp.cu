@@ -30,16 +30,22 @@ void normaliseInput(int ny, int nx, float* normalised, const float* data){
         for (int i = rowj*nx; i < rowj*nx + nx; i++)
         {
             double value = (double) data[i] - mean;
-            normalised[i] = value;
+            int row = i / nx;
+	    int col = i % nx;
+
+	    normalised[row + col*nx] = value;
             sumSqRow += pow(value,2);
         }
         double value2 = sqrt(sumSqRow);
         for (int i = rowj*nx; i < rowj*nx + nx; i++)
         {
-            normalised[i] /= value2;
+	    int row2 = i / nx;
+	    int col2 = i % nx;
+            normalised[row2 + col2*nx] /= value2;
         }
     }
 }
+
 
 //calculates correlation of two rows given a normalised matrix
 __global__ void correlateCall(int ny, int nx, float* normalised, float * d_result, const int BLOCK_SIZE){
@@ -47,10 +53,10 @@ __global__ void correlateCall(int ny, int nx, float* normalised, float * d_resul
     int i = BLOCK_SIZE * blockIdx.x + threadIdx.x;
     int j = BLOCK_SIZE * blockIdx.y + threadIdx.y;
 
-    if(j <= i && i < ny)
+    if(i <= j && j < ny)
     {
     for(int k = 0; k < nx ; k++){
-        res += normalised[k + i*nx] * normalised[k + j*nx];
+        res += normalised[i + k*nx] * normalised[j + k*nx];
     }
     d_result[i + j*ny] = res;
     }
@@ -72,7 +78,7 @@ void correlate(int ny, int nx, const float* data, float* result) {
     normaliseInput(ny,nx,normalised,data);
 
     //Allocate GPU memory
-    cudaMalloc((void**) &d_data, ARRAY_BYTES_DATA;
+    cudaMalloc((void**) &d_data, ARRAY_BYTES_DATA);
     cudaMalloc((void**) &d_result, ARRAY_BYTES_RESULT);
     //Copy from host to device
     cudaMemcpy(d_data,normalised, ARRAY_BYTES_DATA, cudaMemcpyHostToDevice);
