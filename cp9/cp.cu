@@ -94,46 +94,47 @@ __global__ void dot_product(int size_x, int size_y, int o_size_y, const float* i
 
 }
 
-void normaliseInput(int ny,int nx, float* normalised,const float* data,int x_padding, int y_padding){
+void normaliseInput(int ny,int nx, float* normalised,const float* data,int x_se, int y_se){
     for (int i=0; i<ny; ++i)
     {
         double mean = 0;
         double sum = 0;
-        double product = 0;
+        double sumSq = 0;
         double var = 0;
-        for (int k=0; k<nx; ++k)
+        for (int k = 0; k < nx; k++)
         {
-            double x = data[i*nx + k];
+            double x = data[k + i*nx];
             sum += x;
-            product += x*x;
+            sumSq += x*x;
         }
         mean = sum/nx;
-        var = product -nx*mean*mean;
-
-        for (int k=0; k<nx; ++k)
+        var = sumSq -nx*mean*mean;
+        
+        for (int k = 0; k < nx; k++)
         {
-            normalised[(ny+y_padding)*k + i] = (data[i*nx + k] - mean)/sqrt(var);
+            normalised[i + (ny+y_se)*k] = (data[k + i*nx] - mean)/sqrt(var);
         }
-        for (int k=nx; k<nx+x_padding; ++k)
+        for (int k = nx; k < nx+x_se; k++)
         {
-            normalised[(ny+y_padding)*k + i] = 0;
+            normalised[i + (ny+y_se)*k] = 0;
         }
 
     }
 
-    for (int i=ny; i<ny+y_padding; ++i)
+    for (int i = ny; i < ny+y_se; i++)
     {
-        for (int k=0; k<nx+x_padding; ++k)
+        for (int k=0; k<nx+x_se; ++k)
         {
-            normalised[(ny+y_padding)*k + i] = 0;
+            normalised[i + (ny+y_se)*k] = 0;
         }
     }
 }
 
 void correlate(int ny, int nx, const float* data, float* result) {
-
+    
     int x_se = (block_size - nx % block_size) % block_size;
     int y_se = (block_size*thread_rows - ny % (block_size*thread_rows)) % (block_size*thread_rows);
+    
     float *normalised = new float[(ny+y_se)*(nx+x_se)];
     normaliseInput(ny,nx,normalised,data,x_se,y_se);
     float *dev_input;
