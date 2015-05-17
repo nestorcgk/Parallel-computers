@@ -54,14 +54,14 @@ __global__ void correlateCall(int ny, int nx, float* normalised, float * d_resul
     
     for (int splits = 0; splits < splitSize; ++splits)
     {
-        if(thread.Idy == 0)
+        if(threadIdx.y == 0)
         {
             for (int idx = 0; idx < splitSize; ++idx) //verify when it exceeds
             {
                 blockMemi[splitSize*threadIdx.x + idx] = normalised[splitSize*splits + idx + i*nx];
             }
         }
-        if(thread.idx == 0)
+        if(threadIdx.x == 0)
         {
             for (int idy = 0; idy < splitSize; ++idy)
             {
@@ -74,7 +74,8 @@ __global__ void correlateCall(int ny, int nx, float* normalised, float * d_resul
         {
         for(int k = 0; k < memSize ; k++){
             res += blockMemi[splitSize*threadIdx.x + k] * blockMemj[splitSize*threadIdx.y + k];
-        }
+            printf ("Decimals: %d %ld\n", threadIdx.x);
+	}
         
         }
     }
