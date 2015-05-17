@@ -46,7 +46,7 @@ __global__ void correlateCall(int ny, int nx, float* normalised, float * d_resul
     float res = 0.0;
     int i = BLOCK_SIZE * blockIdx.x + threadIdx.x;
     int j = BLOCK_SIZE * blockIdx.y + threadIdx.y;
-
+    __shared__ float blockMem
     if(j <= i && i < ny)
     {
     for(int k = 0; k < nx ; k++){
@@ -72,7 +72,7 @@ void correlate(int ny, int nx, const float* data, float* result) {
     normaliseInput(ny,nx,normalised,data);
 
     //Allocate GPU memory
-    cudaMalloc((void**) &d_data, ARRAY_BYTES_DATA;
+    cudaMalloc((void**) &d_data, ARRAY_BYTES_DATA);
     cudaMalloc((void**) &d_result, ARRAY_BYTES_RESULT);
     //Copy from host to device
     cudaMemcpy(d_data,normalised, ARRAY_BYTES_DATA, cudaMemcpyHostToDevice);
