@@ -2,7 +2,7 @@
 #include <cuda_runtime.h>
 #include <stdio.h>
 #include <iostream>
-#define BLOCK_SIZE 27
+#define BLOCK_SIZE 32
 #define ROWS_PER_THREAD 6 
 #define CHECK_CUDA_ERROR(call) do { \
     cudaError_t result_ = (call); \
@@ -54,34 +54,35 @@ void normaliseInput(int ny,int nx, float* normalised,const float* data,int x_se,
 
 __global__ void correlate_call(int size_x, int size_y, int ny, const float* input, float* output)
 {
-
+    if(blockIdx.y > blockIdx.x)
+	return;
     int s_block = BLOCK_SIZE * ROWS_PER_THREAD;
     int x = threadIdx.x*ROWS_PER_THREAD + blockIdx.x * s_block;
     int y = threadIdx.y*ROWS_PER_THREAD + blockIdx.y * s_block;
-    if (blockIdx.y > blockIdx.x)
-        return;
-    float shared_mem[ROWS_PER_THREAD][ROWS_PER_THREAD] = {0.0};
+    float temp[ROWS_PER_THREAD][ROWS_PER_THREAD] = {0.0};
+
     //Allocate shared memory SM
     __shared__ float chunk_1[BLOCK_SIZE][BLOCK_SIZE * ROWS_PER_THREAD];
     __shared__ float chunk_2[BLOCK_SIZE][BLOCK_SIZE * ROWS_PER_THREAD];
 
-    int chunk_1_info_y = threadIdx.y*ROWS_PER_THREAD + blockIdx.y*s_block;
-    int chunk_2_info_y = threadIdx.y*ROWS_PER_THREAD + blockIdx.x*s_block;
-
-    for (int blockIdx = 0; blockIdx < (size_x + BLOCK_SIZE - 1)/BLOCK_SIZE; blockIdx++)
+    int chunk_1_y = threadIdx.y*ROWS_PER_THREAD + blockIdx.y*s_block;
+    int chunk_2_y = threadIdx.y*ROWS_PER_THREAD + blockIdx.x*s_block;
+    int cont = (size_x + BLOCK_SIZE - 1)/BLOCK_SIZE;
+    //Iterates over blocks
+    for (int blockIdx = 0; blockIdx < cont; blockIdx++)
     {
-        int chunk_1_info_x = threadIdx.x + blockIdx*BLOCK_SIZE;        
-        int chunk_2_info_x = threadIdx.x + blockIdx*BLOCK_SIZE;
-        
+        int chunk_1_x = threadIdx.x + blockIdx*BLOCK_SIZE;        
+        int chunk_2_x = threadIdx.x + blockIdx*BLOCK_SIZE;
+        //Copy data to shared memory
         for (int row = 0; row < ROWS_PER_THREAD; ++row)
-            chunk_1[threadIdx.x][threadIdx.y*ROWS_PER_THREAD + row] = input[chunk_1_info_x*size_y + chunk_1_info_y + row];
+            chunk_1[threadIdx.x][threadIdx.y*ROWS_PER_THREAD + row] = input[chunk_1_x*size_y + chunk_1_y + row];
 
         for (int row = 0; row < ROWS_PER_THREAD; ++row)
-            chunk_2[threadIdx.x][threadIdx.y*ROWS_PER_THREAD + row] = input[chunk_2_info_x*size_y + chunk_2_info_y + row];
-        
+            chunk_2[threadIdx.x][threadIdx.y*ROWS_PER_THREAD + row] = input[chunk_2_x*size_y + chunk_2_y + row];
+        //ensure completed wirte to share memory 
         __syncthreads();
 
-        if (!(x > ny || y > ny))
+        if (y <= ny || x <= ny)
         {
     
         for (int i = 0; i < BLOCK_SIZE; ++i)
@@ -91,7 +92,7 @@ __global__ void correlate_call(int size_x, int size_y, int ny, const float* inpu
                 for (int vecj_r = 0; vecj_r < ROWS_PER_THREAD; vecj_r++)
                 {
 
-                    shared_mem[veci_r][vecj_r] += chunk_1[i][threadIdx.y*ROWS_PER_THREAD + veci_r] * chunk_2[i][threadIdx.x*ROWS_PER_THREAD + vecj_r];
+                    temp[veci_r][vecj_r] += chunk_1[i][threadIdx.y*ROWS_PER_THREAD + veci_r] * chunk_2[i][threadIdx.x*ROWS_PER_THREAD + vecj_r];
                 }
             }
         }
@@ -106,7 +107,7 @@ __global__ void correlate_call(int size_x, int size_y, int ny, const float* inpu
         {
             if (x + vecj_r< ny && y + veci_r < ny)
             {
-                output[x + vecj_r + (y+veci_r)*ny] = shared_mem[veci_r][vecj_r];
+                output[x + vecj_r + (y+veci_r)*ny] = temp[veci_r][vecj_r];
             }
         }
     }
