@@ -1,8 +1,8 @@
 #include "mf.h"
 #include <cuda_runtime.h>
-#define BLOCK_SIZE = 8;
+#define BLOCK_SIZE 8
 
-float median(float * med,int k)
+__device__ float median(float * med,int k)
 {
     float median = 0.0;
     nth_element(med + 0, med + k/2, med +k);
@@ -20,7 +20,7 @@ float median(float * med,int k)
     return median;
 }
 __global__ void mfCall(int ny, int nx, int hy, int hx, const float* in, float* d_result){
-	int nhx = 2*hx+1;
+    int nhx = 2*hx+1;
     int nhy = 2*hy+1;
     int edgex = nhx/2;
     int edgey = nhy/2;
