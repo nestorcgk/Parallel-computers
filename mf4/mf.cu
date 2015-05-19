@@ -2,23 +2,27 @@
 #include <cuda_runtime.h>
 #define BLOCK_SIZE 8
 
-__device__ float median(float * med,int k)
-{
-    float median = 0.0;
-    nth_element(med + 0, med + k/2, med +k);
 
-    if(k % 2 == 0)
-    {
-        median = med[k/2];
-        nth_element(med + 0, med + k/2 -1, med +k);
-        median = (median + med[(k/2) -1])/2.0;
-
-    }else
-    {
-        median = med[k/2];
+__devive__ float median(float * med, int iSize) {
+    for (int i = iSize - 1; i > 0; --i) {
+        for (int j = 0; j < i; ++j) {
+            if (med[j] > med[j+1]) {
+                float dTemp = med[j];
+                med[j] = med[j+1];
+                med[j+1] = dTemp;
+            }
+        }
     }
-    return median;
+    float dMedian = 0.0;
+    if ((iSize % 2) == 0) {
+        dMedian = (med[iSize/2] + med[(iSize/2) - 1])/2.0;
+    } else {
+        dMedian = med[iSize/2];
+    }
+    return dMedian;
 }
+
+
 __global__ void mfCall(int ny, int nx, int hy, int hx, const float* in, float* d_result){
     int nhx = 2*hx+1;
     int nhy = 2*hy+1;
